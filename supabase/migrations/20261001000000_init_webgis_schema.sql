@@ -128,10 +128,10 @@ update road_network set
                  end;
 
 -- 3.2 Bangun topologi: mengisi source/target + membuat tabel node road_network_v
-select pgr_createTopology('road_network', 0.000001, 'geom', 'id');
+-- select pgr_createTopology('road_network', 0.000001, 'geom', 'id');
 
 -- 3.3 Index node untuk snapping KNN
-create index if not exists road_network_v_geom_idx on road_network_v using gist (the_geom);
+-- create index if not exists road_network_v_geom_idx on road_network_v using gist (the_geom);
 
 -- ----------------------------------------------------------------------------
 -- 4) SQL Function (diekspos sebagai RPC; SECURITY DEFINER + search_path kunci)
@@ -259,7 +259,8 @@ begin
       )
     )::jsonb
   ) into v_result
-  from route;
+  from route
+  having count(*) > 0; -- route kosong -> v_result NULL -> error no_route
 
   if v_result is null then
     return jsonb_build_object('error', 'no_route');
@@ -337,7 +338,8 @@ begin
       )
     )::jsonb
   ) into v_result
-  from route;
+  from route
+  having count(*) > 0; -- route kosong -> v_result NULL -> error no_safe_route
 
   if v_result is null then
     -- Tidak ada jalur aman (semua terputus genangan)
