@@ -4,7 +4,10 @@
 // (bukan `any`) sehingga klien Supabase type-safe. Lihat .env.example.
 interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL: string;
-  readonly VITE_SUPABASE_ANON_KEY: string;
+  /** Kunci publishable (penamaan baru Supabase, pengganti anon). Disarankan. */
+  readonly VITE_SUPABASE_PUBLISHABLE_KEY?: string;
+  /** Kunci anon lama (fallback bila publishable tidak ada). */
+  readonly VITE_SUPABASE_ANON_KEY?: string;
 }
 
 interface ImportMeta {
