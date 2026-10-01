@@ -31,3 +31,8 @@ dist-ssr
 # Documentation
 docs
 spec
+
+# Supabase
+supabase/.branches
+supabase/.temp
+supabase/snippets
