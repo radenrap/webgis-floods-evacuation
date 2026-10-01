@@ -22,9 +22,13 @@ body {
   height: 100%;
 }
 
+/* Tinggi eksplisit WAJIB: maplibre-gl.css men-set .maplibregl-map{position:relative}
+   pada container (di-inject setelah index.css), sehingga sizing berbasis
+   position:absolute+inset gugur dan tinggi menjadi 0 (peta blank).
+   Gunakan width/height 100% agar tetap berukuran penuh. */
 .map-canvas {
-  position: absolute;
-  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .map-overlays {

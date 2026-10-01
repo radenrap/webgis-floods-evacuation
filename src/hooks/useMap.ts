@@ -47,10 +47,17 @@ export function useMap(
       setMap(instance);
       setLoaded(true);
     };
+    // Surface error style/tile ke console agar kegagalan render tidak silent.
+    const onError = (e: { error?: unknown }) => {
+      const err = e.error;
+      console.error('[maplibre] error:', err instanceof Error ? err.message : String(err ?? e));
+    };
     instance.on('load', onLoad);
+    instance.on('error', onError);
 
     return () => {
       instance.off('load', onLoad);
+      instance.off('error', onError);
       instance.remove(); // cleanup (spec 30 §7.1)
       setMap(null);
       setLoaded(false);
