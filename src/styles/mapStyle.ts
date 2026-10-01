@@ -5,8 +5,8 @@ import type { FeatureCollection } from 'geojson';
 import type { LayerSpecification, SourceSpecification } from 'maplibre-gl';
 import { RISK_COLOR, RISK_FILL_OPACITY, SHELTER_STATUS_COLOR } from './tokens';
 
-/** Basemap default (demo). Ganti dengan basemap produksi (MapTiler / OSM / dll). */
-export const BASEMAP_STYLE_URL = 'https://demotiles.maplibre.org/style.json';
+/** Basemap default (demo). Ganti dengan basemap produksi (MapTiler / OSM / dll). https://demotiles.maplibre.org/style.json */
+export const BASEMAP_STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
 
 /** FeatureCollection kosong baru (data diisi runtime via fetchLayerGeoJson + setData, 30 §1.1). */
 const emptyFC = (): FeatureCollection => ({ type: 'FeatureCollection', features: [] });
