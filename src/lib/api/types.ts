@@ -129,13 +129,15 @@ export interface RouteError {
   error: RouteErrorCode;
 }
 
-export interface RouteProperties {
+// type alias (bukan interface) agar memiliki implicit index signature -> assignable ke
+// GeoJsonProperties, sehingga RouteFeature dapat dipakai sebagai GeoJSON.Feature umum (40 §7.1).
+export type RouteProperties = {
   from_shelter_id: number;
   total_distance_m: number;
   total_time_s: number;
   edge_count: number;
   avoids_inundation: boolean;
-}
+};
 
 export type RouteFeature = Feature<LineString, RouteProperties>;
 
