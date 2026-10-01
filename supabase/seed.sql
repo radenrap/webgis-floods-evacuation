@@ -64,11 +64,54 @@ update road_network set
   length_m     = st_length(geom::geography),
   cost         = st_length(geom::geography) / (speed_kmh / 3.6),
   reverse_cost = case when oneway then -1 else st_length(geom::geography) / (speed_kmh / 3.6) end;
-select pgr_createTopology('road_network', 0.000001, 'geom', 'id');
-create index if not exists road_network_v_geom_idx on road_network_v using gist (the_geom);
+
+-- Fix audit #1: setelah compute, length_m wajib terisi (spec 10 §3 "Wajib").
+-- Ditaruh SETELAH UPDATE (bukan di migration) karena insert seed sengaja mengosongkan
+-- length_m lalu mengisinya via UPDATE di atas; NOT NULL sebelum insert akan menolak insert.
+alter table road_network alter column length_m set not null;
+
+-- Topologi jaringan dibangun eksplisit (pengganti pgr_createTopology):
+-- deterministik lintas versi pgRouting (lokal 3.4.1 vs cloud 3.6+).
+-- Node = titik ujung ruas yang berbagi koordinat persis.
+create table if not exists public.road_network_v (
+  id       bigint primary key,
+  the_geom geometry(Point, 4326)
+);
+truncate public.road_network_v;
+
+insert into public.road_network_v (id, the_geom)
+select row_number() over (order by geom), geom
+from (
+  select st_startpoint(geom) as geom from public.road_network
+  union
+  select st_endpoint(geom)   as geom from public.road_network
+) nodes;
+
+update public.road_network r
+set source = v.id
+from public.road_network_v v
+where st_equals(v.the_geom, st_startpoint(r.geom));
+
+update public.road_network r
+set target = v.id
+from public.road_network_v v
+where st_equals(v.the_geom, st_endpoint(r.geom));
+
+create index if not exists road_network_v_geom_idx
+  on public.road_network_v using gist (the_geom);
+
+-- Guard: topologi wajib lengkap sebelum uji integrasi.
+do $$
+begin
+  if exists (select 1 from public.road_network where source is null or target is null) then
+    raise exception 'topologi gagal: masih ada source/target null di road_network';
+  end if;
+end $$;
+
 
 -- ----------------------------------------------------------------------------
--- 8.5 Genangan aktif: menutup ruas 1002 utk menguji rute sadar-banjir - SINTETIS
+-- 8.5 Genangan aktif: menutup ruas 1002 dan menyentuh sebagian 1001/1003/1004/1007,
+--     sehingga rute sadar-banjir ke shelter 11 menjadi no_safe_route - SINTETIS
 -- ----------------------------------------------------------------------------
 insert into flood_inundation (event_time, kedalaman_m, aktif, sumber, geom) values
 (now(), 0.6, true, 'Laporan warga (sintetis)',
